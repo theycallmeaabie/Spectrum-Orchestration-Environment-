@@ -1,0 +1,34 @@
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Test artifacts
+.pytest_cache
+.coverage
+htmlcov
+
+# Large training artifacts (don't bake into image)
+checkpoints/
+results/
+
+# Editor & OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Docs only
+*.md
+design.md
+
+# Dev tools
+.env
+.env.*

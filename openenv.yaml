@@ -1,0 +1,20 @@
+spec_version: 1
+name: spectrum_orchestration_env
+type: space
+runtime: fastapi
+app: server.app:app
+port: 8000
+description: >
+  A Gymnasium-compatible RL environment for 5G/6G dynamic spectrum
+  management. An AI agent assigns frequency channels and transmission
+  power levels to mobile devices, optimising throughput, interference,
+  fairness, and power efficiency — scored 0.0–1.0 with partial credit.
+entry_point: server.app:app
+difficulty:
+  - easy    # 10 devices, 4 channels, static
+  - medium  # 50 devices, 8 channels, mobility + shadow fading
+  - hard    # 200 devices, 16 channels, multi-tower, Rayleigh fading
+tools:
+  - assign_spectrum
+  - get_state
+  - get_score
