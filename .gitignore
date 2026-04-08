@@ -34,5 +34,4 @@ results/
 Thumbs.db
 
 # HuggingFace / Gradio
-*.lock
 flagged/
