@@ -5,7 +5,7 @@ Follows the Pre-Submission Checklist strictly:
   - Environment variables: API_BASE_URL, MODEL_NAME, HF_TOKEN, LOCAL_IMAGE_NAME
   - Defaults set only for API_BASE_URL and MODEL_NAME (not HF_TOKEN)
   - All LLM calls use the OpenAI client configured via these variables
-  - Stdout logs follow the required format: START / STEP / END
+  - Stdout logs follow the required format: [START] / [STEP] / [END]
 """
 
 import os
@@ -109,7 +109,7 @@ def get_llm_action(num_devices: int, step_num: int, last_result: dict | None) ->
 
 def run_episode(env, task_id: str, max_steps: int, num_devices: int) -> dict:
     """Run a single episode on a given difficulty."""
-    print(f"STEP: Resetting environment for task={task_id}", flush=True)
+    print(f"[START] task={task_id}", flush=True)
     env.reset()
 
     last_result = None
@@ -131,80 +131,57 @@ def run_episode(env, task_id: str, max_steps: int, num_devices: int) -> dict:
             total_reward += reward
             steps_taken += 1
 
-            if step % 10 == 0 or result.get("done", False):
-                print(
-                    f"STEP: [{task_id}] step={step} "
-                    f"reward={reward:.4f} "
-                    f"score={result.get('total_score', '?')} "
-                    f"throughput={result.get('throughput_score', '?')} "
-                    f"interference={result.get('interference_score', '?')}",
-                    flush=True,
-                )
+            print(
+                f"[STEP] task={task_id} step={step} "
+                f"reward={reward:.4f} "
+                f"score={result.get('total_score', 0.0):.4f} "
+                f"throughput={result.get('throughput_score', 0.0):.4f} "
+                f"interference={result.get('interference_score', 0.0):.4f} "
+                f"fairness={result.get('fairness_score', 0.0):.4f} "
+                f"power={result.get('power_score', 0.0):.4f} "
+                f"done={result.get('done', False)}",
+                flush=True,
+            )
 
             if result.get("done", False):
                 break
         except Exception as e:
-            print(f"STEP: [{task_id}] step={step} error — {e}", flush=True)
+            print(f"[STEP] task={task_id} step={step} error={e}", flush=True)
             break
 
-    avg_reward = total_reward / max(steps_taken, 1)
-    print(
-        f"STEP: [{task_id}] Episode complete — "
-        f"steps={steps_taken} avg_reward={avg_reward:.4f}",
-        flush=True,
-    )
+    final_score = last_result.get("total_score", 0.0) if last_result else 0.0
+    print(f"[END] task={task_id} score={final_score:.4f} steps={steps_taken}", flush=True)
+
     return {
         "task_id": task_id,
         "steps": steps_taken,
         "total_reward": round(total_reward, 4),
-        "avg_reward": round(avg_reward, 4),
-        "final_score": last_result.get("total_score", 0.0) if last_result else 0.0,
+        "avg_reward": round(total_reward / max(steps_taken, 1), 4),
+        "final_score": final_score,
     }
 
 
 def main():
-    print("START", flush=True)
-
     base_url = get_env_base_url()
-    print(f"STEP: Connecting to {base_url}", flush=True)
-
-    results = []
 
     try:
-        with SpectrumEnv(base_url=base_url) as env:
-            print("STEP: Connected. Listing tools...", flush=True)
+        with SpectrumEnv(base_url=base_url).sync() as env:
             try:
                 tools = env.list_tools()
-                print(f"STEP: Tools — {[t.name for t in tools]}", flush=True)
             except Exception:
-                print("STEP: Tool listing skipped, proceeding with known tools", flush=True)
+                pass
 
             # Run all 3 difficulty levels
             for task_id, cfg in TASK_CONFIGS.items():
-                print(f"STEP: === Starting {task_id.upper()} difficulty ===", flush=True)
-                result = run_episode(
+                run_episode(
                     env,
                     task_id=task_id,
                     max_steps=cfg["max_steps"],
                     num_devices=cfg["num_devices"],
                 )
-                results.append(result)
 
     except Exception as e:
-        print(f"STEP: Connection error — {e} (is the server running?)", flush=True)
-
-    # Summary
-    print("STEP: === RESULTS SUMMARY ===", flush=True)
-    for r in results:
-        print(
-            f"STEP: {r['task_id']:>6s} | "
-            f"steps={r['steps']:>3d} | "
-            f"avg_reward={r['avg_reward']:.4f} | "
-            f"final_score={r['final_score']:.4f}",
-            flush=True,
-        )
-
-    print("END", flush=True)
+        print(f"[STEP] task=connection step=0 error={e}", flush=True)
 
 
 if __name__ == "__main__":
