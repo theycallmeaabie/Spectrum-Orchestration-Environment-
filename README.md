@@ -1,4 +1,15 @@
+---
+title: Spectrum Orchestration Env
+emoji: 📡
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+pinned: false
+app_port: 8000
+---
+
 # Spectrum Orchestration — OpenEnv RL Benchmark
+
 
 > **Domain**: Telecommunications / 5G-6G Dynamic Spectrum Management  
 > **Track**: [Meta PyTorch Hackathon — OpenEnv](https://www.scaler.com/school-of-technology/meta-pytorch-hackathon#open-ev)
